@@ -565,13 +565,13 @@ dialog.modal::backdrop{background:rgba(9,9,11,.55)}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
               <input type="search" id="s-prof" placeholder="Search profiles…" autocomplete="off" spellcheck="false" aria-label="Search profiles">
               <span class="kbd">/</span>
-              <button class="clear" type="button" data-clear="s-prof" aria-label="Clear search">
+              <button class="clear" type="button" tabindex="-1" data-clear="s-prof" aria-label="Clear search">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
           </div>
           <div class="index-meta"><span>Profiles</span><span class="n" id="m-prof">0</span></div>
-          <div class="list" id="l-prof" role="listbox" aria-label="Profiles" tabindex="0"></div>
+          <div class="list" id="l-prof" role="listbox" aria-label="Profiles — Tab and Shift+Tab move to the next and previous profile"></div>
         </aside>
 
         <div class="detail">
@@ -588,7 +588,7 @@ dialog.modal::backdrop{background:rgba(9,9,11,.55)}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
               <input type="search" id="s-perm" placeholder="Search permissions…" autocomplete="off" spellcheck="false" aria-label="Search permissions">
               <span class="kbd">/</span>
-              <button class="clear" type="button" data-clear="s-perm" aria-label="Clear search">
+              <button class="clear" type="button" tabindex="-1" data-clear="s-perm" aria-label="Clear search">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -597,7 +597,7 @@ dialog.modal::backdrop{background:rgba(9,9,11,.55)}
             </select>
           </div>
           <div class="index-meta"><span>Permissions</span><span class="n" id="m-perm">0</span></div>
-          <div class="list" id="l-perm" role="listbox" aria-label="Permissions" tabindex="0"></div>
+          <div class="list" id="l-perm" role="listbox" aria-label="Permissions"></div>
         </aside>
 
         <div class="detail">
@@ -688,12 +688,17 @@ var RULES = [
   { level:"write", re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
   { level:"read",  re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
 ];
+var sevCache=new Map();
 function severity(name){
+  var hit=sevCache.get(name);
+  if(hit) return hit;
+  var level=LEVELS.none;
   for(var i=0;i<RULES.length;i++){
     var r=RULES[i];
-    if(r.re.test(name) && (!r.and || r.and.test(name))) return LEVELS[r.level];
+    if(r.re.test(name) && (!r.and || r.and.test(name))){ level=LEVELS[r.level]; break; }
   }
-  return LEVELS.none;
+  sevCache.set(name,level);
+  return level;
 }
 
 /* ============================================================
@@ -799,6 +804,8 @@ function buildIndex(rows){
     });
   });
 
+  sevCache.clear();
+  radarMaxCache=null;
   state.profiles=profiles;
   state.permissions=permissions;
   state.products=Array.from(products).sort(collate);
@@ -954,7 +961,9 @@ function totalCount(profile,product){
   return set?set.size:0;
 }
 /* Scale to the busiest profile so every radar is read on the same axis. */
+var radarMaxCache=null;
 function radarMax(){
+  if(radarMaxCache!==null) return radarMaxCache;
   var max=0;
   state.profiles.forEach(function(_,profile){
     state.mainProducts.forEach(function(prod){
@@ -962,6 +971,7 @@ function radarMax(){
       if(v>max) max=v;
     });
   });
+  radarMaxCache=max;
   return max;
 }
 function ellipsize(text,max){
@@ -1047,6 +1057,23 @@ function radarHTML(profile){
   '</div>';
 }
 
+/* Selecting must not rebuild the list: the focused row has to survive,
+   because focus is what drives the selection when tabbing through. */
+function markSelected(listSel,attr,value){
+  var rows=document.querySelectorAll(listSel+" .row");
+  for(var i=0;i<rows.length;i++){
+    rows[i].setAttribute("aria-selected", rows[i].getAttribute(attr)===value ? "true" : "false");
+  }
+}
+
+function selectProfile(name){
+  if(name===state.selProfile) return;
+  state.selProfile=name;
+  state.qDetail="";
+  markSelected("#l-prof","data-profile",name);
+  renderProfileDetail();
+}
+
 function renderProfileDetail(){
   var head=$("#d-prof-head"), body=$("#d-prof-body");
   var name=state.selProfile;
@@ -1080,7 +1107,7 @@ function renderProfileDetail(){
     '<div class="detail-tools">'+
       '<div class="search'+(state.qDetail?" has-value":"")+'" id="s-pdet-wrap">'+ICON.search+
         '<input type="search" id="s-pdet" placeholder="Filter this profile’s permissions…" autocomplete="off" spellcheck="false" aria-label="Filter permissions of this profile" value="'+esc(state.qDetail)+'">'+
-        '<button class="clear" type="button" data-clear="s-pdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+        '<button class="clear" type="button" tabindex="-1" data-clear="s-pdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
       '</div>'+
       '<button class="btn btn-xs" data-act="expand">Expand all</button>'+
       '<button class="btn btn-xs" data-act="collapse">Collapse all</button>'+
@@ -1215,7 +1242,7 @@ function renderPermissionDetail(){
     '<div class="detail-tools">'+
       '<div class="search'+(state.qPermDetail?" has-value":"")+'" id="s-qdet-wrap">'+ICON.search+
         '<input type="search" id="s-qdet" placeholder="Filter these profiles…" autocomplete="off" spellcheck="false" aria-label="Filter profiles holding this permission" value="'+esc(state.qPermDetail)+'">'+
-        '<button class="clear" type="button" data-clear="s-qdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+        '<button class="clear" type="button" tabindex="-1" data-clear="s-qdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
       '</div>'+
       '<button class="btn btn-xs" data-act="copy-permission">'+ICON.copy+' Copy</button>'+
     '</div>'+
@@ -1337,6 +1364,7 @@ function ingest(text,fileName){
   state.productFilter="";
   state.levelFilter.clear();
   state.mainProducts=defaultMainProducts();
+  radarMaxCache=null;
   $("#s-prof").value=""; $("#s-perm").value="";
   clearSearchState("#s-prof-wrap",""); clearSearchState("#s-perm-wrap","");
 
@@ -1398,6 +1426,13 @@ $("#btn-theme").addEventListener("click",function(){
 });
 
 // index searches
+/* Each row is a native button, so Tab and Shift+Tab already walk the list.
+   Selecting on focus is what turns that walk into navigation. */
+$("#l-prof").addEventListener("focusin",function(e){
+  var row=e.target.closest("[data-profile]");
+  if(row) selectProfile(row.getAttribute("data-profile"));
+});
+
 $("#s-prof").addEventListener("input",function(e){
   state.qProfile=e.target.value;
   clearSearchState("#s-prof-wrap",state.qProfile);
@@ -1452,9 +1487,8 @@ document.addEventListener("input",function(e){
 document.addEventListener("click",function(e){
   var row=e.target.closest("[data-profile]");
   if(row){
-    state.selProfile=row.getAttribute("data-profile");
-    state.qDetail="";
-    renderProfileList(); renderProfileDetail();
+    selectProfile(row.getAttribute("data-profile"));
+    row.focus();
     return;
   }
   var prow=e.target.closest("[data-permission]");
@@ -1568,8 +1602,14 @@ document.addEventListener("keydown",function(e){
     e.preventDefault();
     var idx=rows.findIndex(function(r){ return r.getAttribute("aria-selected")==="true"; });
     var next = e.key==="ArrowDown" ? Math.min(rows.length-1, idx+1) : Math.max(0, idx<=0?0:idx-1);
-    rows[next].click();
-    rows[next].scrollIntoView({block:"nearest"});
+    var target=rows[next];
+    if(state.tab==="profiles"){
+      if(e.target.id==="s-prof") selectProfile(target.getAttribute("data-profile"));
+      else target.focus();
+    } else {
+      target.click();
+    }
+    target.scrollIntoView({block:"nearest"});
   }
 });
 
@@ -1634,6 +1674,7 @@ $("#dlg-products").addEventListener("close",function(){
   if($("#dlg-products").returnValue!=="confirm") return;
   if(picking.length<MIN_MAIN) return;
   state.mainProducts=picking.slice();
+  radarMaxCache=null;
   renderProfileDetail();
   toast("Radar set to "+plural(state.mainProducts.length,"product"));
 });
