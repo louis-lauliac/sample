@@ -26,7 +26,7 @@
   --ring:#14B8A6;
   --mark:#FDE68A;
   --mark-fg:#3F2D06;
-  --sev-read:#2563EB;
+  --sev-read:#16A34A;
   --sev-write:#B45309;
   --sev-elev:#7C3AED;
   --sev-crit:#DC2626;
@@ -57,7 +57,7 @@
     --ring:#2DD4BF;
     --mark:#4A3A0C;
     --mark-fg:#FDE68A;
-    --sev-read:#60A5FA;
+    --sev-read:#4ADE80;
     --sev-write:#FBBF24;
     --sev-elev:#A78BFA;
     --sev-crit:#F87171;
@@ -84,7 +84,7 @@
   --ring:#2DD4BF;
   --mark:#4A3A0C;
   --mark-fg:#FDE68A;
-  --sev-read:#60A5FA;
+  --sev-read:#4ADE80;
   --sev-write:#FBBF24;
   --sev-elev:#A78BFA;
   --sev-crit:#F87171;
@@ -561,15 +561,33 @@ select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0
 /* ============================================================
    Severity: permission names carry risk, so encode it visually.
    ============================================================ */
-var SEVERITY = [
-  { key:"crit",  color:"var(--sev-crit)",  label:"Destructive", re:/\b(delete|destroy|purge|erase|remove|revoke|wipe|drop)\b/i },
-  { key:"elev",  color:"var(--sev-elev)",  label:"Elevated",    re:/\b(admin|administrator|manage|management|owner|impersonate|setup|configure|config|grant|assign|approve|all\s+data|modify\s+all|view\s+all|bypass|override)\b/i },
-  { key:"write", color:"var(--sev-write)", label:"Write",       re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
-  { key:"read",  color:"var(--sev-read)",  label:"Read",        re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
+var LEVELS = {
+  crit:  { key:"crit",  color:"var(--sev-crit)",  label:"Destructive" },
+  elev:  { key:"elev",  color:"var(--sev-elev)",  label:"Elevated" },
+  write: { key:"write", color:"var(--sev-write)", label:"Write" },
+  read:  { key:"read",  color:"var(--sev-read)",  label:"Read" },
+  none:  { key:"none",  color:"var(--sev-none)",  label:"Other" }
+};
+var LEGEND = [LEVELS.crit, LEVELS.elev, LEVELS.write, LEVELS.read, LEVELS.none];
+
+/* First rule that matches wins, so order is the precedence.
+   A rule with "and" only matches when both patterns are present. */
+var RULES = [
+  { level:"crit",  re:/\b(delete|destroy|purge|erase|remove|revoke|wipe|drop)\b/i },
+  { level:"elev",  re:/\b(admin|administrator|manage|management|owner|impersonate|setup|configure|config|grant|assign|all\s+data|modify\s+all|view\s+all|bypass|override)\b/i },
+  { level:"elev",  re:/\bapprov/i },                       /* approve, approval, approved */
+  { level:"read",  re:/\binstruction/i, and:/\bview/i },    /* viewing instructions only reads them */
+  { level:"write", re:/\binstruction/i },
+  { level:"write", re:/\b(input|cancel|confirm)/i },        /* cancellation, confirmation */
+  { level:"write", re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
+  { level:"read",  re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
 ];
 function severity(name){
-  for(var i=0;i<SEVERITY.length;i++){ if(SEVERITY[i].re.test(name)) return SEVERITY[i]; }
-  return { key:"none", color:"var(--sev-none)", label:"Other" };
+  for(var i=0;i<RULES.length;i++){
+    var r=RULES[i];
+    if(r.re.test(name) && (!r.and || r.and.test(name))) return LEVELS[r.level];
+  }
+  return LEVELS.none;
 }
 
 /* ============================================================
@@ -857,8 +875,7 @@ function renderProfileDetail(){
 }
 
 function legendHTML(){
-  var items=SEVERITY.concat([{color:"var(--sev-none)",label:"Other"}]);
-  return '<div class="legend">'+items.map(function(s){
+  return '<div class="legend">'+LEGEND.map(function(s){
     return '<i><span class="dot" style="background:'+s.color+'"></span>'+s.label+'</i>';
   }).join("")+'</div>';
 }
@@ -1363,7 +1380,18 @@ var SAMPLE = [
   "Data Steward,CRM,Delete Accounts",
   "Data Steward,CRM,Import Leads",
   "Data Steward,Analytics,Manage Dashboards",
-  "Data Steward,Support Desk,Delete Tickets"
+  "Data Steward,Support Desk,Delete Tickets",
+  "Field Supervisor,Work Orders,View Instructions",
+  "Field Supervisor,Work Orders,Edit Instructions",
+  "Field Supervisor,Work Orders,Approve Work Orders",
+  "Field Supervisor,Work Orders,Cancel Work Orders",
+  "Field Supervisor,Work Orders,Confirm Completion",
+  "Field Technician,Work Orders,View Instructions",
+  "Field Technician,Work Orders,Input Readings",
+  "Field Technician,Work Orders,Confirmation of Arrival",
+  "Field Technician,Work Orders,Cancellation Request",
+  "Finance Controller,Work Orders,Approval of Expenses",
+  "Support Lead,Work Orders,View Instructions"
 ].join("\n");
 
 $("#btn-sample").addEventListener("click",function(){ ingest(SAMPLE,"sample-permissions.csv"); });
