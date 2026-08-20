@@ -26,7 +26,7 @@
   --ring:#14B8A6;
   --mark:#FDE68A;
   --mark-fg:#3F2D06;
-  --sev-read:#2563EB;
+  --sev-read:#16A34A;
   --sev-write:#B45309;
   --sev-elev:#7C3AED;
   --sev-crit:#DC2626;
@@ -57,7 +57,7 @@
     --ring:#2DD4BF;
     --mark:#4A3A0C;
     --mark-fg:#FDE68A;
-    --sev-read:#60A5FA;
+    --sev-read:#4ADE80;
     --sev-write:#FBBF24;
     --sev-elev:#A78BFA;
     --sev-crit:#F87171;
@@ -84,7 +84,7 @@
   --ring:#2DD4BF;
   --mark:#4A3A0C;
   --mark-fg:#FDE68A;
-  --sev-read:#60A5FA;
+  --sev-read:#4ADE80;
   --sev-write:#FBBF24;
   --sev-elev:#A78BFA;
   --sev-crit:#F87171;
@@ -416,6 +416,91 @@ select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0
   *{animation-duration:.001ms !important;transition-duration:.001ms !important}
 }
 
+/* ---------- access-level filter (doubles as the legend) ---------- */
+.levelbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lvl{
+  display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;
+  border-radius:999px;border:1px solid var(--border);background:var(--panel);
+  font-size:12px;color:var(--fg-muted);cursor:pointer;
+  transition:border-color .12s ease,background .12s ease,color .12s ease;
+}
+.lvl:hover:not([disabled]){border-color:var(--border-strong);color:var(--fg)}
+.lvl[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--fg);font-weight:560}
+.lvl[disabled]{opacity:.4;cursor:default}
+.lvl .n{font-family:var(--mono);font-size:10.5px;font-variant-numeric:tabular-nums;color:var(--fg-subtle)}
+.lvl[aria-pressed="true"] .n{color:var(--fg-muted)}
+
+/* ---------- radar ---------- */
+.radar-card{
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);
+  box-shadow:var(--shadow-sm);padding:14px 16px 16px;
+}
+.radar-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.radar-title{font-weight:560;font-size:13.5px;letter-spacing:-.008em}
+.radar-sub{font-size:11.5px;color:var(--fg-subtle)}
+.radar-grid{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.radar-svg{flex:0 0 auto;max-width:100%;height:auto}
+.radar-side{flex:1 1 230px;min-width:0;overflow-x:auto}
+.rr-ring,.rr-spoke{fill:none;stroke:var(--border);stroke-width:1}
+.rr-area{fill:var(--accent);fill-opacity:.12;stroke:var(--accent);stroke-width:2;stroke-linejoin:round}
+.rr-dot{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.rr-hit{fill:transparent;cursor:pointer}
+.rr-hit:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+.rr-label{fill:var(--fg-muted);font-size:11px;font-family:var(--sans)}
+.rr-tick{fill:var(--fg-subtle);font-size:9.5px;font-family:var(--mono)}
+.rtable{width:100%;border-collapse:collapse;font-size:12.5px}
+.rtable th{
+  text-align:left;font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--fg-subtle);font-weight:600;padding:0 8px 6px;
+}
+.rtable th.num,.rtable td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.rtable td{padding:6px 8px;border-top:1px solid var(--border)}
+.rtable td.num{font-size:12px}
+.rtable td.num.zero{color:var(--fg-subtle)}
+.rtable .name{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.viz-tip{
+  position:fixed;z-index:60;pointer-events:none;opacity:0;
+  background:var(--fg);color:var(--bg);padding:6px 9px;border-radius:7px;
+  font-size:11.5px;box-shadow:var(--shadow-md);white-space:nowrap;
+  transition:opacity .12s ease;
+}
+.viz-tip.is-on{opacity:1}
+.viz-tip b{font-family:var(--mono);font-weight:600}
+
+/* ---------- product picker dialog ---------- */
+dialog.modal{border:0;padding:0;background:transparent;max-width:min(540px,92vw);color:var(--fg)}
+dialog.modal::backdrop{background:rgba(9,9,11,.55)}
+.modal-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  box-shadow:var(--shadow-md);overflow:hidden;
+}
+.modal-head{padding:18px 20px 13px;border-bottom:1px solid var(--border)}
+.modal-head h2{margin:0 0 5px;font-size:16px;font-weight:600;letter-spacing:-.018em}
+.modal-head p{margin:0;font-size:12.5px;color:var(--fg-muted);line-height:1.5;max-width:58ch}
+.modal-body{padding:10px;max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.pick{
+  display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;text-align:left;
+  border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;cursor:pointer;
+}
+.pick:hover:not([disabled]){background:var(--panel-2)}
+.pick[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-line)}
+.pick[disabled]{opacity:.42;cursor:not-allowed}
+.pick .box{
+  width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border-strong);
+  display:grid;place-items:center;flex:0 0 auto;color:transparent;
+}
+.pick[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.pick .box svg{width:11px;height:11px}
+.pick-name{flex:1 1 auto;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-n{font-family:var(--mono);font-size:11px;color:var(--fg-muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.modal-foot{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-top:1px solid var(--border);background:var(--panel-2);
+}
+.modal-foot .count{font-size:12px;color:var(--fg-muted);margin-right:auto;font-variant-numeric:tabular-nums}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
 /* responsive: stack index over detail */
 @media (max-width:860px){
   .view.is-active{flex-direction:column}
@@ -455,6 +540,10 @@ select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0
       <span class="fstats" id="fstats"></span>
     </div>
 
+    <button class="btn" id="btn-products" hidden title="Choose the products plotted on the profile radar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8v8l-9 5-9-5V8z"/><path d="M12 12 21 8M12 12v9M12 12 3 8"/></svg>
+      Radar products
+    </button>
     <button class="btn btn-ghost btn-icon" id="btn-theme" title="Toggle theme" aria-label="Toggle colour theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
     </button>
@@ -552,6 +641,23 @@ select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0
   </div>
 </div>
 
+<dialog class="modal" id="dlg-products" aria-labelledby="dlg-title">
+  <form method="dialog" class="modal-card">
+    <div class="modal-head">
+      <h2 id="dlg-title">Choose the products to scrutinise</h2>
+      <p>Pick between two and five products. They become the axes of the radar on each profile, which counts everything beyond read-only access.</p>
+    </div>
+    <div class="modal-body" id="dlg-list"></div>
+    <div class="modal-foot">
+      <span class="count" id="dlg-count">0 selected</span>
+      <button class="btn" value="cancel" type="submit">Cancel</button>
+      <button class="btn btn-primary" id="dlg-confirm" value="confirm" type="submit">Use these products</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="viz-tip" id="viz-tip" role="status" aria-live="polite"></div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -561,15 +667,33 @@ select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0
 /* ============================================================
    Severity: permission names carry risk, so encode it visually.
    ============================================================ */
-var SEVERITY = [
-  { key:"crit",  color:"var(--sev-crit)",  label:"Destructive", re:/\b(delete|destroy|purge|erase|remove|revoke|wipe|drop)\b/i },
-  { key:"elev",  color:"var(--sev-elev)",  label:"Elevated",    re:/\b(admin|administrator|manage|management|owner|impersonate|setup|configure|config|grant|assign|approve|all\s+data|modify\s+all|view\s+all|bypass|override)\b/i },
-  { key:"write", color:"var(--sev-write)", label:"Write",       re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
-  { key:"read",  color:"var(--sev-read)",  label:"Read",        re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
+var LEVELS = {
+  crit:  { key:"crit",  color:"var(--sev-crit)",  label:"Destructive" },
+  elev:  { key:"elev",  color:"var(--sev-elev)",  label:"Elevated" },
+  write: { key:"write", color:"var(--sev-write)", label:"Write" },
+  read:  { key:"read",  color:"var(--sev-read)",  label:"Read" },
+  none:  { key:"none",  color:"var(--sev-none)",  label:"Other" }
+};
+var LEGEND = [LEVELS.crit, LEVELS.elev, LEVELS.write, LEVELS.read, LEVELS.none];
+
+/* First rule that matches wins, so order is the precedence.
+   A rule with "and" only matches when both patterns are present. */
+var RULES = [
+  { level:"crit",  re:/\b(delete|destroy|purge|erase|remove|revoke|wipe|drop)\b/i },
+  { level:"elev",  re:/\b(admin|administrator|manage|management|owner|impersonate|setup|configure|config|grant|assign|bypass|override)\b/i },
+  { level:"elev",  re:/\bapprov/i },                       /* approve, approval, approved */
+  { level:"read",  re:/\binstruction/i, and:/\bview/i },    /* viewing instructions only reads them */
+  { level:"write", re:/\binstruction/i },
+  { level:"write", re:/\b(input|cancel|confirm)/i },        /* cancellation, confirmation */
+  { level:"write", re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
+  { level:"read",  re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
 ];
 function severity(name){
-  for(var i=0;i<SEVERITY.length;i++){ if(SEVERITY[i].re.test(name)) return SEVERITY[i]; }
-  return { key:"none", color:"var(--sev-none)", label:"Other" };
+  for(var i=0;i<RULES.length;i++){
+    var r=RULES[i];
+    if(r.re.test(name) && (!r.and || r.and.test(name))) return LEVELS[r.level];
+  }
+  return LEVELS.none;
 }
 
 /* ============================================================
@@ -642,6 +766,8 @@ var state = {
   permissions:new Map(),     // permission -> Map(product -> Set(profile))
   products:[],
   tab:"profiles",
+  mainProducts:[],           // 2–5 products forming the radar axes
+  levelFilter:new Set(),     // empty = every access level
   selProfile:null, selPermission:null,
   qProfile:"", qPermission:"", qDetail:"", qPermDetail:"",
   productFilter:""
@@ -780,6 +906,147 @@ function renderProfileList(){
   }).join("");
 }
 
+function levelCounts(profile){
+  var counts={crit:0,elev:0,write:0,read:0,none:0};
+  var byProduct=state.profiles.get(profile);
+  if(!byProduct) return counts;
+  byProduct.forEach(function(set){
+    set.forEach(function(perm){ counts[severity(perm).key]++; });
+  });
+  return counts;
+}
+
+function levelBarHTML(profile){
+  var counts=levelCounts(profile);
+  return '<div class="levelbar" role="group" aria-label="Filter by access level">'+
+    LEGEND.map(function(lv){
+      var n=counts[lv.key]||0;
+      var on=state.levelFilter.has(lv.key);
+      return '<button class="lvl" type="button" data-level="'+lv.key+'" aria-pressed="'+(on?"true":"false")+'"'+
+        (n===0?" disabled":"")+' title="'+(n===0?"No "+lv.label.toLowerCase()+" permission on this profile":"Show only "+lv.label.toLowerCase()+" permissions")+'">'+
+        '<span class="dot" style="background:'+lv.color+'"></span>'+lv.label+
+        '<span class="n">'+n+'</span></button>';
+    }).join("")+
+    (state.levelFilter.size?'<button class="btn btn-xs btn-ghost" type="button" data-level="__all">Show all</button>':"")+
+  '</div>';
+}
+
+function passesLevel(perm){
+  return state.levelFilter.size===0 || state.levelFilter.has(severity(perm).key);
+}
+
+/* ============================================================
+   Radar: permissions per product, read-only excluded.
+   One series, so no legend box — the title names what is plotted.
+   ============================================================ */
+function nonReadCount(profile,product){
+  var byProduct=state.profiles.get(profile);
+  if(!byProduct) return 0;
+  var set=byProduct.get(product);
+  if(!set) return 0;
+  var n=0;
+  set.forEach(function(perm){ if(severity(perm).key!=="read") n++; });
+  return n;
+}
+function totalCount(profile,product){
+  var byProduct=state.profiles.get(profile);
+  var set=byProduct && byProduct.get(product);
+  return set?set.size:0;
+}
+/* Scale to the busiest profile so every radar is read on the same axis. */
+function radarMax(){
+  var max=0;
+  state.profiles.forEach(function(_,profile){
+    state.mainProducts.forEach(function(prod){
+      var v=nonReadCount(profile,prod);
+      if(v>max) max=v;
+    });
+  });
+  return max;
+}
+function ellipsize(text,max){
+  return text.length>max ? text.slice(0,max-1)+"…" : text;
+}
+
+function radarHTML(profile){
+  var prods=state.mainProducts;
+  if(prods.length<2) return "";
+
+  var counts=prods.map(function(prod){ return nonReadCount(profile,prod); });
+  var peak=radarMax();
+  var rings=(peak<=4)?Math.max(1,peak):4;
+  var max=(peak<=4)?Math.max(1,peak):Math.ceil(peak/4)*4;
+
+  /* Two axes cannot close a polygon, so the pair is drawn as a wedge:
+     both spokes fan upward and the shape closes through the origin. */
+  var n=prods.length, two=(n===2), size=300, c=size/2;
+  var cy = two?196:c, R = two?100:92;
+  var ang=function(i){
+    var deg = two ? (i===0?-135:-45) : (-90+360*i/n);
+    return deg*Math.PI/180;
+  };
+  var px=function(i,r){ return c+Math.cos(ang(i))*r; };
+  var py=function(i,r){ return cy+Math.sin(ang(i))*r; };
+
+  var gridRings="", spokes="", labels="", dots="", hits="";
+  for(var k=1;k<=rings;k++){
+    var rr=R*k/rings, ring=two?[c+","+cy]:[];
+    for(var g=0;g<n;g++) ring.push(px(g,rr).toFixed(1)+","+py(g,rr).toFixed(1));
+    gridRings+='<polygon class="rr-ring" points="'+ring.join(" ")+'"/>';
+  }
+  var area=two?[c+","+cy]:[];
+  for(var i=0;i<n;i++){
+    spokes+='<line class="rr-spoke" x1="'+c+'" y1="'+cy+'" x2="'+px(i,R).toFixed(1)+'" y2="'+py(i,R).toFixed(1)+'"/>';
+
+    var v=max?counts[i]/max:0;
+    var x=px(i,R*v), y=py(i,R*v);
+    area.push(x.toFixed(1)+","+y.toFixed(1));
+    dots+='<circle class="rr-dot" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4"/>';
+    hits+='<circle class="rr-hit" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="13" tabindex="0" role="img"'+
+      ' data-radar-point="1" data-label="'+esc(prods[i])+'" data-value="'+counts[i]+'"'+
+      ' aria-label="'+esc(prods[i])+': '+counts[i]+' permissions beyond read-only"></circle>';
+
+    var lx, ly, anchor;
+    if(two){
+      lx=px(i,R*1.14); ly=py(i,R*1.14)-8; anchor="middle";
+    } else {
+      lx=px(i,R+18); ly=py(i,R+18)+4;
+      var cosA=Math.cos(ang(i));
+      anchor = Math.abs(cosA)<0.25 ? "middle" : (cosA>0?"start":"end");
+    }
+    labels+='<text class="rr-label" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'">'+
+      esc(ellipsize(prods[i],two?13:16))+'</text>';
+  }
+
+  return '<div class="radar-card">'+
+    '<div class="radar-head">'+
+      '<span class="radar-title">Reach beyond read-only</span>'+
+      '<span class="radar-sub">Permissions per product · read-only excluded · axis 0–'+max+'</span>'+
+    '</div>'+
+    '<div class="radar-grid">'+
+      '<svg class="radar-svg" style="width:'+(two?300:380)+'px" viewBox="'+(two?"18 84 264 124":"-46 0 392 300")+'" role="group" aria-label="Radar of permissions per product, read-only excluded">'+
+        gridRings+spokes+
+        '<polygon class="rr-area" points="'+area.join(" ")+'"/>'+
+        dots+hits+labels+
+        (two?"":'<text class="rr-tick" x="'+(c-6)+'" y="'+(c-R+3)+'" text-anchor="end">'+max+'</text>'+
+              '<text class="rr-tick" x="'+(c-6)+'" y="'+(c-2)+'" text-anchor="end">0</text>')+
+      '</svg>'+
+      '<div class="radar-side">'+
+        '<table class="rtable"><thead><tr>'+
+          '<th>Product</th><th class="num">Beyond read</th><th class="num">All</th>'+
+        '</tr></thead><tbody>'+
+        prods.map(function(prod,idx){
+          var nr=counts[idx], tot=totalCount(profile,prod);
+          return '<tr><td class="name" title="'+esc(prod)+'">'+esc(prod)+'</td>'+
+            '<td class="num'+(nr===0?" zero":"")+'">'+nr+'</td>'+
+            '<td class="num'+(tot===0?" zero":"")+'">'+tot+'</td></tr>';
+        }).join("")+
+        '</tbody></table>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
 function renderProfileDetail(){
   var head=$("#d-prof-head"), body=$("#d-prof-body");
   var name=state.selProfile;
@@ -819,17 +1086,17 @@ function renderProfileDetail(){
       '<button class="btn btn-xs" data-act="collapse">Collapse all</button>'+
       '<button class="btn btn-xs" data-act="copy-profile">'+ICON.copy+' Copy</button>'+
     '</div>'+
+    levelBarHTML(name)+
   '</div>';
 
   var byProduct=state.profiles.get(name);
   var products=Array.from(byProduct.keys()).sort(collate);
-  var chunks=[], shown=0;
+  var chunks=[];
 
   products.forEach(function(product){
     var perms=Array.from(byProduct.get(product)).sort(collate)
-      .filter(function(p){ return !q || p.toLowerCase().indexOf(q)>=0; });
+      .filter(function(p){ return (!q || p.toLowerCase().indexOf(q)>=0) && passesLevel(p); });
     if(perms.length===0) return;
-    shown+=perms.length;
     chunks.push(
       '<details class="group" open>'+
         '<summary>'+ICON.chev+
@@ -849,18 +1116,14 @@ function renderProfileDetail(){
     );
   });
 
+  var radar=radarHTML(name);
+
   if(chunks.length===0){
-    body.innerHTML='<div class="stack"><p style="color:var(--fg-muted);font-size:13px">No permission on this profile matches <b>'+esc(state.qDetail)+'</b>.</p></div>';
+    body.innerHTML='<div class="stack">'+radar+
+      '<p style="color:var(--fg-muted);font-size:13px">No permission on this profile matches the current filters.</p></div>';
     return;
   }
-  body.innerHTML='<div class="stack">'+chunks.join("")+legendHTML()+'</div>';
-}
-
-function legendHTML(){
-  var items=SEVERITY.concat([{color:"var(--sev-none)",label:"Other"}]);
-  return '<div class="legend">'+items.map(function(s){
-    return '<i><span class="dot" style="background:'+s.color+'"></span>'+s.label+'</i>';
-  }).join("")+'</div>';
+  body.innerHTML='<div class="stack">'+radar+chunks.join("")+'</div>';
 }
 
 /* ============================================================
@@ -1015,6 +1278,8 @@ function renderChrome(){
     $("#fstats").textContent="· "+state.rowCount.toLocaleString()+" grants";
   } else chip.hidden=true;
 
+  $("#btn-products").hidden = state.products.length<2;
+
   var sel=$("#f-product");
   var current=state.productFilter;
   sel.innerHTML='<option value="">All products</option>'+
@@ -1070,6 +1335,8 @@ function ingest(text,fileName){
   state.selPermission=null;
   state.qProfile=state.qPermission=state.qDetail=state.qPermDetail="";
   state.productFilter="";
+  state.levelFilter.clear();
+  state.mainProducts=defaultMainProducts();
   $("#s-prof").value=""; $("#s-perm").value="";
   clearSearchState("#s-prof-wrap",""); clearSearchState("#s-perm-wrap","");
 
@@ -1081,6 +1348,8 @@ function ingest(text,fileName){
           plural(state.products.length,"product");
   if(state.skipped) msg+=" — "+plural(state.skipped,"row")+" skipped";
   toast(msg);
+
+  if(state.products.length>=2) openProductPicker();
 }
 
 function readFile(file){
@@ -1219,6 +1488,15 @@ document.addEventListener("click",function(e){
     scrollSelectedIntoView("#l-prof");
     return;
   }
+  var lvl=e.target.closest("[data-level]");
+  if(lvl){
+    var key=lvl.getAttribute("data-level");
+    if(key==="__all") state.levelFilter.clear();
+    else if(state.levelFilter.has(key)) state.levelFilter["delete"](key);
+    else state.levelFilter.add(key);
+    renderProfileDetail();
+    return;
+  }
   var act=e.target.closest("[data-act]");
   if(act) handleAction(act.getAttribute("data-act"));
 });
@@ -1296,6 +1574,103 @@ document.addEventListener("keydown",function(e){
 });
 
 /* ============================================================
+   Main products: the 2–5 axes of the profile radar
+   ============================================================ */
+function productReach(prod){
+  var n=0;
+  state.profiles.forEach(function(byProduct){
+    var set=byProduct.get(prod);
+    if(set) set.forEach(function(perm){ if(severity(perm).key!=="read") n++; });
+  });
+  return n;
+}
+function defaultMainProducts(){
+  return state.products.slice()
+    .sort(function(a,b){ return productReach(b)-productReach(a) || collate(a,b); })
+    .slice(0,Math.min(5,state.products.length));
+}
+
+var MAX_MAIN=5, MIN_MAIN=2;
+var picking=[];
+
+function renderPicker(){
+  var full=picking.length>=MAX_MAIN;
+  $("#dlg-list").innerHTML=state.products.map(function(prod){
+    var on=picking.indexOf(prod)>=0;
+    return '<button class="pick" type="button" data-pick="'+esc(prod)+'" aria-pressed="'+(on?"true":"false")+'"'+
+      (!on&&full?" disabled":"")+'>'+
+      '<span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span>'+
+      '<span class="pick-name">'+esc(prod)+'</span>'+
+      '<span class="pick-n">'+productReach(prod)+' beyond read</span>'+
+    '</button>';
+  }).join("");
+
+  var count=picking.length;
+  $("#dlg-count").textContent = count+" of "+MAX_MAIN+" selected"+(count<MIN_MAIN?" — pick at least "+MIN_MAIN:"");
+  $("#dlg-confirm").disabled = count<MIN_MAIN;
+}
+
+function openProductPicker(){
+  if(state.products.length<MIN_MAIN) return;
+  picking=state.mainProducts.filter(function(p){ return state.products.indexOf(p)>=0; }).slice(0,MAX_MAIN);
+  renderPicker();
+  var dlg=$("#dlg-products");
+  if(typeof dlg.showModal==="function") dlg.showModal(); else dlg.setAttribute("open","");
+}
+
+$("#btn-products").addEventListener("click",openProductPicker);
+
+$("#dlg-list").addEventListener("click",function(e){
+  var btn=e.target.closest("[data-pick]");
+  if(!btn || btn.disabled) return;
+  var prod=btn.getAttribute("data-pick");
+  var at=picking.indexOf(prod);
+  if(at>=0) picking.splice(at,1);
+  else if(picking.length<MAX_MAIN) picking.push(prod);
+  renderPicker();
+});
+
+$("#dlg-products").addEventListener("close",function(){
+  if($("#dlg-products").returnValue!=="confirm") return;
+  if(picking.length<MIN_MAIN) return;
+  state.mainProducts=picking.slice();
+  renderProfileDetail();
+  toast("Radar set to "+plural(state.mainProducts.length,"product"));
+});
+
+/* ============================================================
+   Radar hover layer
+   ============================================================ */
+var tip=$("#viz-tip");
+function showTip(el){
+  var r=el.getBoundingClientRect();
+  tip.innerHTML='<b>'+esc(el.getAttribute("data-value"))+'</b> beyond read-only · '+esc(el.getAttribute("data-label"));
+  tip.classList.add("is-on");
+  var w=tip.offsetWidth, h=tip.offsetHeight;
+  var x=Math.min(Math.max(6, r.left+r.width/2-w/2), window.innerWidth-w-6);
+  var y=r.top-h-8;
+  if(y<6) y=r.bottom+8;
+  tip.style.left=x+"px";
+  tip.style.top=y+"px";
+}
+function hideTip(){ tip.classList.remove("is-on"); }
+document.addEventListener("mouseover",function(e){
+  var pt=e.target.closest && e.target.closest("[data-radar-point]");
+  if(pt) showTip(pt);
+});
+document.addEventListener("mouseout",function(e){
+  if(e.target.closest && e.target.closest("[data-radar-point]")) hideTip();
+});
+document.addEventListener("focusin",function(e){
+  var pt=e.target.closest && e.target.closest("[data-radar-point]");
+  if(pt) showTip(pt);
+});
+document.addEventListener("focusout",function(e){
+  if(e.target.closest && e.target.closest("[data-radar-point]")) hideTip();
+});
+window.addEventListener("scroll",hideTip,true);
+
+/* ============================================================
    Sample data
    ============================================================ */
 var SAMPLE = [
@@ -1363,7 +1738,18 @@ var SAMPLE = [
   "Data Steward,CRM,Delete Accounts",
   "Data Steward,CRM,Import Leads",
   "Data Steward,Analytics,Manage Dashboards",
-  "Data Steward,Support Desk,Delete Tickets"
+  "Data Steward,Support Desk,Delete Tickets",
+  "Field Supervisor,Work Orders,View Instructions",
+  "Field Supervisor,Work Orders,Edit Instructions",
+  "Field Supervisor,Work Orders,Approve Work Orders",
+  "Field Supervisor,Work Orders,Cancel Work Orders",
+  "Field Supervisor,Work Orders,Confirm Completion",
+  "Field Technician,Work Orders,View Instructions",
+  "Field Technician,Work Orders,Input Readings",
+  "Field Technician,Work Orders,Confirmation of Arrival",
+  "Field Technician,Work Orders,Cancellation Request",
+  "Finance Controller,Work Orders,Approval of Expenses",
+  "Support Lead,Work Orders,View Instructions"
 ].join("\n");
 
 $("#btn-sample").addEventListener("click",function(){ ingest(SAMPLE,"sample-permissions.csv"); });
