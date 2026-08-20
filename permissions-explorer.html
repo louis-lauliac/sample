@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permission Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#FBFBFC;
+  --panel:#FFFFFF;
+  --panel-2:#F5F5F7;
+  --panel-3:#EFEFF2;
+  --fg:#18181B;
+  --fg-muted:#65656E;
+  --fg-subtle:#9A9AA3;
+  --border:#E4E4E9;
+  --border-strong:#D2D2D9;
+  --accent:#0F766E;
+  --accent-fg:#FFFFFF;
+  --accent-soft:#E3F1EE;
+  --accent-line:#9CCFC7;
+  --ring:#14B8A6;
+  --mark:#FDE68A;
+  --mark-fg:#3F2D06;
+  --sev-read:#2563EB;
+  --sev-write:#B45309;
+  --sev-elev:#7C3AED;
+  --sev-crit:#DC2626;
+  --sev-none:#8E8E98;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow-md:0 4px 6px -2px rgba(16,24,40,.04), 0 12px 22px -6px rgba(16,24,40,.10);
+  --radius:10px;
+  --radius-sm:7px;
+  --sans:"Geist","Geist Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0B0D;
+    --panel:#131317;
+    --panel-2:#1A1A1F;
+    --panel-3:#212127;
+    --fg:#F4F4F5;
+    --fg-muted:#A0A0AA;
+    --fg-subtle:#6E6E78;
+    --border:#26262C;
+    --border-strong:#35353D;
+    --accent:#2DD4BF;
+    --accent-fg:#04231F;
+    --accent-soft:#122F2B;
+    --accent-line:#1F5B53;
+    --ring:#2DD4BF;
+    --mark:#4A3A0C;
+    --mark-fg:#FDE68A;
+    --sev-read:#60A5FA;
+    --sev-write:#FBBF24;
+    --sev-elev:#A78BFA;
+    --sev-crit:#F87171;
+    --sev-none:#7A7A85;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:0 4px 6px -2px rgba(0,0,0,.35), 0 12px 22px -6px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0B0D;
+  --panel:#131317;
+  --panel-2:#1A1A1F;
+  --panel-3:#212127;
+  --fg:#F4F4F5;
+  --fg-muted:#A0A0AA;
+  --fg-subtle:#6E6E78;
+  --border:#26262C;
+  --border-strong:#35353D;
+  --accent:#2DD4BF;
+  --accent-fg:#04231F;
+  --accent-soft:#122F2B;
+  --accent-line:#1F5B53;
+  --ring:#2DD4BF;
+  --mark:#4A3A0C;
+  --mark-fg:#FDE68A;
+  --sev-read:#60A5FA;
+  --sev-write:#FBBF24;
+  --sev-elev:#A78BFA;
+  --sev-crit:#F87171;
+  --sev-none:#7A7A85;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 4px 6px -2px rgba(0,0,0,.35), 0 12px 22px -6px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+/* ---------- base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"cv11" 1;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:6px}
+::selection{background:var(--accent-soft);color:var(--fg)}
+mark{background:var(--mark);color:var(--mark-fg);border-radius:3px;padding:0 1px}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:0 18px;min-height:56px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  flex:0 0 auto;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:9px;margin-right:2px}
+.brand-mark{
+  width:26px;height:26px;border-radius:8px;flex:0 0 auto;
+  background:var(--accent);color:var(--accent-fg);
+  display:grid;place-items:center;
+}
+.brand-mark svg{width:15px;height:15px}
+.brand-name{font-weight:600;letter-spacing:-.012em;font-size:14.5px}
+.brand-sub{color:var(--fg-subtle);font-size:12px;letter-spacing:.02em}
+@media (max-width:720px){.brand-sub{display:none}}
+
+.topbar-spacer{flex:1 1 auto}
+
+.filechip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel-2);border:1px solid var(--border);
+  border-radius:999px;padding:4px 4px 4px 12px;max-width:min(46vw,420px);
+}
+.filechip .fname{
+  font-family:var(--mono);font-size:11.5px;color:var(--fg-muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.filechip .fstats{font-size:11.5px;color:var(--fg-subtle);white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:900px){.filechip{display:none}}
+
+/* ---------- controls ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  height:32px;padding:0 12px;border-radius:var(--radius-sm);
+  border:1px solid var(--border-strong);background:var(--panel);
+  font-size:13px;font-weight:500;cursor:pointer;
+  transition:background .12s ease,border-color .12s ease,color .12s ease;
+  white-space:nowrap;
+}
+.btn:hover{background:var(--panel-2)}
+.btn svg{width:14px;height:14px;flex:0 0 auto}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:var(--accent);filter:brightness(1.08)}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--fg-muted)}
+.btn-ghost:hover{background:var(--panel-2);color:var(--fg)}
+.btn-icon{width:32px;padding:0;justify-content:center}
+.btn-xs{height:26px;padding:0 9px;font-size:12px;border-radius:6px}
+
+/* segmented tabs */
+.tabs{
+  display:inline-flex;gap:3px;padding:3px;
+  background:var(--panel-2);border:1px solid var(--border);border-radius:9px;
+}
+.tab{
+  height:28px;padding:0 14px;border:0;border-radius:6px;background:transparent;
+  color:var(--fg-muted);font-size:13px;font-weight:500;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:background .12s ease,color .12s ease;
+}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:var(--shadow-sm);font-weight:560}
+.tab .tcount{
+  font-family:var(--mono);font-size:10.5px;color:var(--fg-subtle);
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- workspace ---------- */
+.workspace{flex:1 1 auto;min-height:0;display:flex}
+.view{display:none;flex:1 1 auto;min-height:0;min-width:0}
+.view.is-active{display:flex}
+
+.index{
+  flex:0 0 320px;min-width:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--border);background:var(--panel);
+}
+.index-head{padding:12px 14px 10px;display:flex;flex-direction:column;gap:9px;border-bottom:1px solid var(--border)}
+.search{position:relative;display:flex;align-items:center}
+.search svg{position:absolute;left:10px;width:14px;height:14px;color:var(--fg-subtle);pointer-events:none}
+.search input{
+  width:100%;height:34px;padding:0 30px 0 31px;
+  background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:13px;
+}
+.search input::placeholder{color:var(--fg-subtle)}
+.search input:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0 0 3px var(--accent-soft)}
+.search .clear{
+  position:absolute;right:5px;width:22px;height:22px;border:0;border-radius:5px;
+  background:transparent;color:var(--fg-subtle);cursor:pointer;display:none;place-items:center;
+}
+.search .clear:hover{background:var(--panel-3);color:var(--fg)}
+.search.has-value .clear{display:grid}
+.kbd{
+  position:absolute;right:8px;font-family:var(--mono);font-size:10px;color:var(--fg-subtle);
+  border:1px solid var(--border);border-radius:4px;padding:1px 4px;background:var(--panel);
+}
+.search.has-value .kbd{display:none}
+
+select.control{
+  height:32px;padding:0 26px 0 10px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--panel-2);font-size:12.5px;
+  appearance:none;cursor:pointer;width:100%;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2365656E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;background-size:14px;
+}
+select.control:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0 0 3px var(--accent-soft)}
+
+.index-meta{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:7px 14px;font-size:11px;color:var(--fg-subtle);
+  letter-spacing:.05em;text-transform:uppercase;font-weight:560;
+  border-bottom:1px solid var(--border);background:var(--panel-2);
+}
+.index-meta .n{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:0}
+
+.list{flex:1 1 auto;overflow-y:auto;padding:6px;scrollbar-width:thin}
+.row{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border-radius:var(--radius-sm);border:1px solid transparent;
+  background:transparent;text-align:left;cursor:pointer;
+}
+.row:hover{background:var(--panel-2)}
+.row[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent-line)}
+.row-main{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:1px}
+.row-title{
+  display:block;font-size:13px;font-weight:500;letter-spacing:-.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-sub{
+  display:block;font-size:11.5px;color:var(--fg-muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums;
+}
+.row-n{
+  font-family:var(--mono);font-size:11px;color:var(--fg-muted);
+  font-variant-numeric:tabular-nums;background:var(--panel-2);
+  border:1px solid var(--border);border-radius:5px;padding:1px 5px;flex:0 0 auto;
+}
+.row[aria-selected="true"] .row-n{background:var(--panel);border-color:var(--accent-line)}
+.dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:var(--sev-none)}
+
+/* ---------- detail ---------- */
+.detail{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.detail-head{
+  padding:16px 22px 13px;border-bottom:1px solid var(--border);background:var(--panel);
+  display:flex;flex-direction:column;gap:11px;flex:0 0 auto;
+}
+.eyebrow{
+  font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--fg-subtle);font-weight:600;
+}
+.detail-title{
+  margin:2px 0 0;font-size:21px;font-weight:600;letter-spacing:-.022em;
+  text-wrap:balance;line-height:1.2;
+}
+.detail-title.mono{font-family:var(--mono);font-size:18px;font-weight:500;letter-spacing:-.01em}
+.badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;
+  border-radius:999px;border:1px solid var(--border);background:var(--panel-2);
+  font-size:11.5px;color:var(--fg-muted);font-variant-numeric:tabular-nums;
+}
+.badge b{color:var(--fg);font-weight:600;font-family:var(--mono);font-size:11px}
+.detail-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.detail-tools .search{flex:1 1 220px;max-width:340px}
+.detail-tools .search input{height:32px}
+
+.detail-body{flex:1 1 auto;overflow-y:auto;padding:16px 22px 40px;scrollbar-width:thin}
+.stack{display:flex;flex-direction:column;gap:12px;max-width:1080px}
+
+.group{
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.group>summary{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;
+  list-style:none;user-select:none;
+}
+.group>summary::-webkit-details-marker{display:none}
+.group>summary:hover{background:var(--panel-2)}
+.chev{width:14px;height:14px;color:var(--fg-subtle);transition:transform .15s ease;flex:0 0 auto}
+.group[open] .chev{transform:rotate(90deg)}
+.group-name{font-weight:560;font-size:13.5px;letter-spacing:-.008em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-n{
+  margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-muted);
+  font-variant-numeric:tabular-nums;flex:0 0 auto;
+}
+.group-body{padding:0 14px 14px;border-top:1px solid var(--border);padding-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;max-width:100%;
+  padding:4px 9px 4px 8px;border-radius:7px;
+  border:1px solid var(--border);background:var(--panel-2);
+  font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--fg);
+  cursor:pointer;text-align:left;
+  transition:border-color .12s ease,background .12s ease;
+}
+.chip:hover{border-color:var(--border-strong);background:var(--panel-3)}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .dot{width:6px;height:6px}
+
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th{
+  text-align:left;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--fg-subtle);font-weight:600;padding:0 12px 8px;
+}
+.ptable td{padding:9px 12px;border-top:1px solid var(--border);vertical-align:top}
+.ptable tbody tr:hover{background:var(--panel-2)}
+.ptable .cell-profile{font-weight:500;letter-spacing:-.005em}
+.linkish{
+  background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;
+  text-align:left;border-bottom:1px solid transparent;
+}
+.linkish:hover{border-bottom-color:var(--accent);color:var(--accent)}
+.tag{
+  display:inline-block;padding:2px 7px;border-radius:6px;margin:0 4px 4px 0;
+  border:1px solid var(--border);background:var(--panel-2);
+  font-size:11px;color:var(--fg-muted);
+}
+
+.legend{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+  font-size:11px;color:var(--fg-subtle);padding:2px 0 0;
+}
+.legend i{display:inline-flex;align-items:center;gap:5px;font-style:normal}
+
+/* empty / placeholder states */
+.placeholder{
+  flex:1 1 auto;display:grid;place-items:center;padding:40px 24px;text-align:center;
+}
+.placeholder-inner{max-width:340px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.placeholder h3{margin:0;font-size:14.5px;font-weight:560;letter-spacing:-.01em}
+.placeholder p{margin:0;font-size:13px;color:var(--fg-muted);line-height:1.55}
+.placeholder .ico{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:var(--panel-2);border:1px solid var(--border);color:var(--fg-subtle);margin-bottom:2px;
+}
+.placeholder .ico svg{width:18px;height:18px}
+.empty-list{padding:26px 16px;text-align:center;color:var(--fg-subtle);font-size:12.5px}
+
+/* ---------- welcome / dropzone ---------- */
+.welcome{
+  position:absolute;inset:0;z-index:20;display:grid;place-items:center;
+  background:var(--bg);padding:24px;overflow-y:auto;
+}
+.welcome[hidden]{display:none}
+.card{
+  width:min(560px,100%);background:var(--panel);
+  border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-md);
+  padding:26px 26px 22px;
+}
+.card h1{
+  margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.026em;text-wrap:balance;
+}
+.card .lede{margin:0 0 18px;color:var(--fg-muted);font-size:13.5px;line-height:1.6;max-width:60ch}
+.dropzone{
+  border:1.5px dashed var(--border-strong);border-radius:12px;
+  padding:26px 18px;text-align:center;background:var(--panel-2);
+  display:flex;flex-direction:column;align-items:center;gap:11px;
+  transition:border-color .15s ease,background .15s ease;
+}
+.dropzone.is-over{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone p{margin:0;font-size:12.5px;color:var(--fg-muted)}
+.schema{
+  margin-top:18px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+}
+.schema-head{
+  padding:7px 12px;background:var(--panel-2);border-bottom:1px solid var(--border);
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);font-weight:600;
+}
+.schema table{width:100%;border-collapse:collapse;font-size:12px}
+.schema td{padding:7px 12px;border-top:1px solid var(--border)}
+.schema tr:first-child td{border-top:0}
+.schema .col{font-family:var(--mono);font-size:11px;color:var(--accent);width:34px}
+.schema .name{font-weight:500;width:120px}
+.schema .note{color:var(--fg-muted)}
+.welcome-foot{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
+.err{
+  margin-top:14px;padding:9px 12px;border-radius:var(--radius-sm);font-size:12.5px;
+  border:1px solid color-mix(in srgb,var(--sev-crit) 40%,var(--border));
+  background:color-mix(in srgb,var(--sev-crit) 8%,transparent);color:var(--sev-crit);
+}
+.err[hidden]{display:none}
+
+.workspace-wrap{position:relative;flex:1 1 auto;min-height:0;display:flex}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(10px);
+  background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:999px;
+  font-size:12.5px;font-weight:500;box-shadow:var(--shadow-md);
+  opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:40;
+}
+.toast.is-on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+
+/* responsive: stack index over detail */
+@media (max-width:860px){
+  .view.is-active{flex-direction:column}
+  .index{flex:0 0 auto;max-height:44vh;border-right:0;border-bottom:1px solid var(--border)}
+  .detail-head{padding:14px 16px 12px}
+  .detail-body{padding:14px 16px 32px}
+  .topbar{padding:8px 14px;gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+      </span>
+      <span>
+        <span class="brand-name">Permission Atlas</span>
+      </span>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Explore by">
+      <button class="tab" id="tab-profiles" role="tab" aria-selected="true" aria-controls="view-profiles" data-tab="profiles">
+        Profiles <span class="tcount" id="tc-profiles">0</span>
+      </button>
+      <button class="tab" id="tab-permissions" role="tab" aria-selected="false" aria-controls="view-permissions" data-tab="permissions">
+        Permissions <span class="tcount" id="tc-permissions">0</span>
+      </button>
+    </nav>
+
+    <span class="topbar-spacer"></span>
+
+    <div class="filechip" id="filechip" hidden>
+      <span class="fname" id="fname">—</span>
+      <span class="fstats" id="fstats"></span>
+    </div>
+
+    <button class="btn btn-ghost btn-icon" id="btn-theme" title="Toggle theme" aria-label="Toggle colour theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+    </button>
+    <button class="btn" id="btn-load">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg>
+      Load CSV
+    </button>
+    <input type="file" id="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" hidden>
+  </header>
+
+  <div class="workspace-wrap">
+    <main class="workspace">
+
+      <!-- ============ PROFILES ============ -->
+      <section class="view is-active" id="view-profiles" role="tabpanel" aria-labelledby="tab-profiles">
+        <aside class="index">
+          <div class="index-head">
+            <div class="search" id="s-prof-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <input type="search" id="s-prof" placeholder="Search profiles…" autocomplete="off" spellcheck="false" aria-label="Search profiles">
+              <span class="kbd">/</span>
+              <button class="clear" type="button" data-clear="s-prof" aria-label="Clear search">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="index-meta"><span>Profiles</span><span class="n" id="m-prof">0</span></div>
+          <div class="list" id="l-prof" role="listbox" aria-label="Profiles" tabindex="0"></div>
+        </aside>
+
+        <div class="detail">
+          <div id="d-prof-head"></div>
+          <div class="detail-body" id="d-prof-body"></div>
+        </div>
+      </section>
+
+      <!-- ============ PERMISSIONS ============ -->
+      <section class="view" id="view-permissions" role="tabpanel" aria-labelledby="tab-permissions" hidden>
+        <aside class="index">
+          <div class="index-head">
+            <div class="search" id="s-perm-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <input type="search" id="s-perm" placeholder="Search permissions…" autocomplete="off" spellcheck="false" aria-label="Search permissions">
+              <span class="kbd">/</span>
+              <button class="clear" type="button" data-clear="s-perm" aria-label="Clear search">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <select class="control" id="f-product" aria-label="Filter by product">
+              <option value="">All products</option>
+            </select>
+          </div>
+          <div class="index-meta"><span>Permissions</span><span class="n" id="m-perm">0</span></div>
+          <div class="list" id="l-perm" role="listbox" aria-label="Permissions" tabindex="0"></div>
+        </aside>
+
+        <div class="detail">
+          <div id="d-perm-head"></div>
+          <div class="detail-body" id="d-perm-body"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ WELCOME ============ -->
+    <div class="welcome" id="welcome">
+      <div class="card">
+        <h1>Explore profile permissions</h1>
+        <p class="lede">Drop in a permissions export and read it two ways: what a profile can do across every product, or which profiles hold a given permission. Everything runs in this page — the file never leaves your machine.</p>
+
+        <div class="dropzone" id="dropzone">
+          <button class="btn btn-primary" id="btn-load-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg>
+            Choose a CSV file
+          </button>
+          <p>or drag it anywhere on this page</p>
+        </div>
+
+        <div class="schema">
+          <div class="schema-head">Expected columns</div>
+          <table>
+            <tr><td class="col">A</td><td class="name">Profile name</td><td class="note">e.g. Sales Manager</td></tr>
+            <tr><td class="col">B</td><td class="name">Product</td><td class="note">e.g. CRM</td></tr>
+            <tr><td class="col">C</td><td class="name">Permissions</td><td class="note">one per row, or several split by <code>;</code> <code>|</code> or a line break</td></tr>
+          </table>
+        </div>
+
+        <div class="err" id="err" hidden></div>
+
+        <div class="welcome-foot">
+          <button class="btn" id="btn-sample">Load sample data</button>
+          <span style="font-size:12px;color:var(--fg-subtle)">A header row is detected and skipped automatically.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Severity: permission names carry risk, so encode it visually.
+   ============================================================ */
+var SEVERITY = [
+  { key:"crit",  color:"var(--sev-crit)",  label:"Destructive", re:/\b(delete|destroy|purge|erase|remove|revoke|wipe|drop)\b/i },
+  { key:"elev",  color:"var(--sev-elev)",  label:"Elevated",    re:/\b(admin|administrator|manage|management|owner|impersonate|setup|configure|config|grant|assign|approve|all\s+data|modify\s+all|view\s+all|bypass|override)\b/i },
+  { key:"write", color:"var(--sev-write)", label:"Write",       re:/\b(create|edit|update|write|modify|import|upload|publish|send|merge|convert|transfer|clone|add)\b/i },
+  { key:"read",  color:"var(--sev-read)",  label:"Read",        re:/\b(read|view|access|list|search|report|dashboard|export|download|browse)\b/i }
+];
+function severity(name){
+  for(var i=0;i<SEVERITY.length;i++){ if(SEVERITY[i].re.test(name)) return SEVERITY[i]; }
+  return { key:"none", color:"var(--sev-none)", label:"Other" };
+}
+
+/* ============================================================
+   CSV parsing
+   ============================================================ */
+function sniffDelimiter(text){
+  var line="", inQ=false;
+  for(var i=0;i<text.length;i++){
+    var c=text[i];
+    if(c==='"') inQ=!inQ;
+    else if(c==='\n' && !inQ) break;
+    line+=c;
+  }
+  var counts=[[",",0],[";",0],["\t",0]];
+  var q=false;
+  for(var j=0;j<line.length;j++){
+    var ch=line[j];
+    if(ch==='"'){q=!q;continue;}
+    if(q) continue;
+    for(var k=0;k<counts.length;k++) if(ch===counts[k][0]) counts[k][1]++;
+  }
+  counts.sort(function(a,b){return b[1]-a[1];});
+  return counts[0][1]>0 ? counts[0][0] : ",";
+}
+
+function parseCSV(text, delim){
+  text = text.replace(/^\uFEFF/,"");
+  var rows=[], row=[], field="", inQ=false, i=0;
+  while(i<text.length){
+    var c=text[i];
+    if(inQ){
+      if(c==='"'){
+        if(text[i+1]==='"'){ field+='"'; i+=2; continue; }
+        inQ=false; i++; continue;
+      }
+      field+=c; i++; continue;
+    }
+    if(c==='"'){ inQ=true; i++; continue; }
+    if(c===delim){ row.push(field); field=""; i++; continue; }
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
+    field+=c; i++;
+  }
+  row.push(field); rows.push(row);
+  return rows.filter(function(r){
+    return r.some(function(cell){ return String(cell).trim()!==""; });
+  });
+}
+
+function looksLikeHeader(row){
+  if(!row) return false;
+  var a=(row[0]||"").toLowerCase(), b=(row[1]||"").toLowerCase(), c=(row[2]||"").toLowerCase();
+  return /profile/.test(a) && /product|app|module|service/.test(b) && /permission|privilege|right|entitlement/.test(c);
+}
+
+/* Column C may hold several permissions at once. Split on separators
+   that cannot appear inside a single permission name. */
+function splitPermissions(cell){
+  return String(cell).split(/[;|\n]+/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s.length>0; });
+}
+
+/* ============================================================
+   State + indexes
+   ============================================================ */
+var state = {
+  fileName:"", rowCount:0, skipped:0,
+  profiles:new Map(),        // profile -> Map(product -> Set(permission))
+  permissions:new Map(),     // permission -> Map(product -> Set(profile))
+  products:[],
+  tab:"profiles",
+  selProfile:null, selPermission:null,
+  qProfile:"", qPermission:"", qDetail:"", qPermDetail:"",
+  productFilter:""
+};
+
+function buildIndex(rows){
+  var profiles=new Map(), permissions=new Map(), products=new Set(), skipped=0, total=0;
+
+  rows.forEach(function(r){
+    var profile=(r[0]||"").trim();
+    var product=(r[1]||"").trim() || "Unspecified";
+    var perms=splitPermissions(r[2]||"");
+    if(!profile || perms.length===0){ skipped++; return; }
+    products.add(product);
+
+    perms.forEach(function(perm){
+      total++;
+      var byProduct=profiles.get(profile);
+      if(!byProduct){ byProduct=new Map(); profiles.set(profile,byProduct); }
+      var set=byProduct.get(product);
+      if(!set){ set=new Set(); byProduct.set(product,set); }
+      set.add(perm);
+
+      var holders=permissions.get(perm);
+      if(!holders){ holders=new Map(); permissions.set(perm,holders); }
+      var pset=holders.get(product);
+      if(!pset){ pset=new Set(); holders.set(product,pset); }
+      pset.add(profile);
+    });
+  });
+
+  state.profiles=profiles;
+  state.permissions=permissions;
+  state.products=Array.from(products).sort(collate);
+  state.rowCount=total;
+  state.skipped=skipped;
+}
+
+function collate(a,b){ return String(a).localeCompare(String(b),undefined,{sensitivity:"base",numeric:true}); }
+
+/* ============================================================
+   Small helpers
+   ============================================================ */
+var $ = function(sel){ return document.querySelector(sel); };
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(ch){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
+  });
+}
+function highlight(text,q){
+  var safe=esc(text);
+  if(!q) return safe;
+  var needle=esc(q);
+  var idx=safe.toLowerCase().indexOf(needle.toLowerCase());
+  if(idx<0) return safe;
+  return safe.slice(0,idx)+"<mark>"+safe.slice(idx,idx+needle.length)+"</mark>"+safe.slice(idx+needle.length);
+}
+function plural(n,one,many){ return n+" "+(n===1?one:(many||one+"s")); }
+
+var toastTimer=null;
+function toast(msg){
+  var el=$("#toast");
+  el.textContent=msg;
+  el.classList.add("is-on");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.classList.remove("is-on"); },1900);
+}
+function copyText(text,label){
+  var done=function(){ toast(label||"Copied to clipboard"); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text,done); });
+  } else fallbackCopy(text,done);
+}
+function fallbackCopy(text,done){
+  var ta=document.createElement("textarea");
+  ta.value=text; ta.setAttribute("readonly","");
+  ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("Copy failed"); }
+  document.body.removeChild(ta);
+}
+
+var ICON = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
+  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 8.3-8.3M17 6l2.5 2.5M14.5 8.5 17 11"/></svg>'
+};
+
+function clearSearchState(wrapSel,value){
+  var wrap=$(wrapSel);
+  if(wrap) wrap.classList.toggle("has-value",!!value);
+}
+
+/* ============================================================
+   Profiles tab
+   ============================================================ */
+function profileStats(profile){
+  var byProduct=state.profiles.get(profile);
+  if(!byProduct) return {products:0,permissions:0};
+  var uniq=new Set(), n=0;
+  byProduct.forEach(function(set){ n+=set.size; set.forEach(function(p){ uniq.add(p); }); });
+  return {products:byProduct.size,permissions:n,unique:uniq.size};
+}
+
+function matchingProfiles(){
+  var q=state.qProfile.trim().toLowerCase();
+  var out=[];
+  state.profiles.forEach(function(_,name){
+    if(!q || name.toLowerCase().indexOf(q)>=0) out.push(name);
+  });
+  return out.sort(collate);
+}
+
+function renderProfileList(){
+  var names=matchingProfiles();
+  var list=$("#l-prof");
+  $("#m-prof").textContent=names.length;
+
+  if(names.length===0){
+    list.innerHTML='<div class="empty-list">'+(state.profiles.size?"No profile matches <b>"+esc(state.qProfile)+"</b>":"No data loaded")+'</div>';
+    return;
+  }
+  var q=state.qProfile.trim();
+  list.innerHTML=names.map(function(name){
+    var s=profileStats(name);
+    var sel = name===state.selProfile;
+    return '<button class="row" role="option" aria-selected="'+(sel?"true":"false")+'" data-profile="'+esc(name)+'">'+
+      '<span class="row-main">'+
+        '<span class="row-title">'+highlight(name,q)+'</span>'+
+        '<span class="row-sub">'+plural(s.products,"product")+' · '+plural(s.permissions,"permission")+'</span>'+
+      '</span>'+
+      '<span class="row-n">'+s.permissions+'</span>'+
+    '</button>';
+  }).join("");
+}
+
+function renderProfileDetail(){
+  var head=$("#d-prof-head"), body=$("#d-prof-body");
+  var name=state.selProfile;
+
+  if(!name || !state.profiles.has(name)){
+    head.innerHTML="";
+    body.innerHTML="";
+    body.className="detail-body placeholder";
+    body.innerHTML='<div class="placeholder-inner">'+
+      '<span class="ico">'+ICON.users+'</span>'+
+      '<h3>Pick a profile</h3>'+
+      '<p>Choose a profile on the left to see every permission it holds, grouped by product.</p></div>';
+    return;
+  }
+  body.className="detail-body";
+
+  var s=profileStats(name);
+  var q=state.qDetail.trim().toLowerCase();
+
+  head.innerHTML=
+  '<div class="detail-head">'+
+    '<div>'+
+      '<div class="eyebrow">Profile</div>'+
+      '<h2 class="detail-title">'+esc(name)+'</h2>'+
+    '</div>'+
+    '<div class="badges">'+
+      '<span class="badge"><b>'+s.products+'</b> '+(s.products===1?"product":"products")+'</span>'+
+      '<span class="badge"><b>'+s.permissions+'</b> '+(s.permissions===1?"permission":"permissions")+'</span>'+
+      '<span class="badge"><b>'+s.unique+'</b> distinct</span>'+
+    '</div>'+
+    '<div class="detail-tools">'+
+      '<div class="search'+(state.qDetail?" has-value":"")+'" id="s-pdet-wrap">'+ICON.search+
+        '<input type="search" id="s-pdet" placeholder="Filter this profile’s permissions…" autocomplete="off" spellcheck="false" aria-label="Filter permissions of this profile" value="'+esc(state.qDetail)+'">'+
+        '<button class="clear" type="button" data-clear="s-pdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+      '</div>'+
+      '<button class="btn btn-xs" data-act="expand">Expand all</button>'+
+      '<button class="btn btn-xs" data-act="collapse">Collapse all</button>'+
+      '<button class="btn btn-xs" data-act="copy-profile">'+ICON.copy+' Copy</button>'+
+    '</div>'+
+  '</div>';
+
+  var byProduct=state.profiles.get(name);
+  var products=Array.from(byProduct.keys()).sort(collate);
+  var chunks=[], shown=0;
+
+  products.forEach(function(product){
+    var perms=Array.from(byProduct.get(product)).sort(collate)
+      .filter(function(p){ return !q || p.toLowerCase().indexOf(q)>=0; });
+    if(perms.length===0) return;
+    shown+=perms.length;
+    chunks.push(
+      '<details class="group" open>'+
+        '<summary>'+ICON.chev+
+          '<span class="group-name">'+esc(product)+'</span>'+
+          '<span class="group-n">'+perms.length+'</span>'+
+        '</summary>'+
+        '<div class="group-body"><div class="chips">'+
+          perms.map(function(p){
+            var sev=severity(p);
+            return '<button class="chip" data-goto-perm="'+esc(p)+'" title="'+esc(sev.label)+' · see every profile with this permission">'+
+              '<span class="dot" style="background:'+sev.color+'"></span>'+
+              '<span>'+highlight(p,state.qDetail.trim())+'</span>'+
+            '</button>';
+          }).join("")+
+        '</div></div>'+
+      '</details>'
+    );
+  });
+
+  if(chunks.length===0){
+    body.innerHTML='<div class="stack"><p style="color:var(--fg-muted);font-size:13px">No permission on this profile matches <b>'+esc(state.qDetail)+'</b>.</p></div>';
+    return;
+  }
+  body.innerHTML='<div class="stack">'+chunks.join("")+legendHTML()+'</div>';
+}
+
+function legendHTML(){
+  var items=SEVERITY.concat([{color:"var(--sev-none)",label:"Other"}]);
+  return '<div class="legend">'+items.map(function(s){
+    return '<i><span class="dot" style="background:'+s.color+'"></span>'+s.label+'</i>';
+  }).join("")+'</div>';
+}
+
+/* ============================================================
+   Permissions tab
+   ============================================================ */
+function permissionStats(perm,productFilter){
+  var byProduct=state.permissions.get(perm);
+  if(!byProduct) return {products:0,profiles:0};
+  var profiles=new Set(), products=0;
+  byProduct.forEach(function(set,product){
+    if(productFilter && product!==productFilter) return;
+    products++;
+    set.forEach(function(p){ profiles.add(p); });
+  });
+  return {products:products,profiles:profiles.size};
+}
+
+function matchingPermissions(){
+  var q=state.qPermission.trim().toLowerCase();
+  var pf=state.productFilter;
+  var out=[];
+  state.permissions.forEach(function(byProduct,perm){
+    if(q && perm.toLowerCase().indexOf(q)<0) return;
+    if(pf && !byProduct.has(pf)) return;
+    out.push(perm);
+  });
+  return out.sort(collate);
+}
+
+function renderPermissionList(){
+  var perms=matchingPermissions();
+  var list=$("#l-perm");
+  $("#m-perm").textContent=perms.length;
+
+  if(perms.length===0){
+    var why = state.permissions.size
+      ? "No permission matches"+(state.qPermission?" <b>"+esc(state.qPermission)+"</b>":"")+(state.productFilter?" in <b>"+esc(state.productFilter)+"</b>":"")
+      : "No data loaded";
+    list.innerHTML='<div class="empty-list">'+why+'</div>';
+    return;
+  }
+  var q=state.qPermission.trim();
+  list.innerHTML=perms.map(function(perm){
+    var s=permissionStats(perm,state.productFilter);
+    var sev=severity(perm);
+    var sel=perm===state.selPermission;
+    return '<button class="row" role="option" aria-selected="'+(sel?"true":"false")+'" data-permission="'+esc(perm)+'">'+
+      '<span class="dot" style="background:'+sev.color+'" title="'+esc(sev.label)+'"></span>'+
+      '<span class="row-main">'+
+        '<span class="row-title" style="font-family:var(--mono);font-size:12.5px">'+highlight(perm,q)+'</span>'+
+        '<span class="row-sub">'+plural(s.profiles,"profile")+' · '+plural(s.products,"product")+'</span>'+
+      '</span>'+
+      '<span class="row-n">'+s.profiles+'</span>'+
+    '</button>';
+  }).join("");
+}
+
+function renderPermissionDetail(){
+  var head=$("#d-perm-head"), body=$("#d-perm-body");
+  var perm=state.selPermission;
+
+  if(!perm || !state.permissions.has(perm)){
+    head.innerHTML="";
+    body.className="detail-body placeholder";
+    body.innerHTML='<div class="placeholder-inner">'+
+      '<span class="ico">'+ICON.key+'</span>'+
+      '<h3>Pick a permission</h3>'+
+      '<p>Choose a permission on the left to see which profiles hold it, and in which products. Narrow the list with the product filter.</p></div>';
+    return;
+  }
+  body.className="detail-body";
+
+  var pf=state.productFilter;
+  var s=permissionStats(perm,pf);
+  var sev=severity(perm);
+
+  head.innerHTML=
+  '<div class="detail-head">'+
+    '<div>'+
+      '<div class="eyebrow">Permission</div>'+
+      '<h2 class="detail-title mono">'+esc(perm)+'</h2>'+
+    '</div>'+
+    '<div class="badges">'+
+      '<span class="badge"><span class="dot" style="background:'+sev.color+'"></span>'+esc(sev.label)+'</span>'+
+      '<span class="badge"><b>'+s.profiles+'</b> '+(s.profiles===1?"profile":"profiles")+'</span>'+
+      '<span class="badge"><b>'+s.products+'</b> '+(s.products===1?"product":"products")+'</span>'+
+      (pf?'<span class="badge">filtered to <b>'+esc(pf)+'</b></span>':"")+
+    '</div>'+
+    '<div class="detail-tools">'+
+      '<div class="search'+(state.qPermDetail?" has-value":"")+'" id="s-qdet-wrap">'+ICON.search+
+        '<input type="search" id="s-qdet" placeholder="Filter these profiles…" autocomplete="off" spellcheck="false" aria-label="Filter profiles holding this permission" value="'+esc(state.qPermDetail)+'">'+
+        '<button class="clear" type="button" data-clear="s-qdet" aria-label="Clear filter"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+      '</div>'+
+      '<button class="btn btn-xs" data-act="copy-permission">'+ICON.copy+' Copy</button>'+
+    '</div>'+
+  '</div>';
+
+  // profile -> [products]
+  var byProduct=state.permissions.get(perm);
+  var rowsMap=new Map();
+  byProduct.forEach(function(set,product){
+    if(pf && product!==pf) return;
+    set.forEach(function(profile){
+      if(!rowsMap.has(profile)) rowsMap.set(profile,[]);
+      rowsMap.get(profile).push(product);
+    });
+  });
+
+  var q=state.qPermDetail.trim().toLowerCase();
+  var names=Array.from(rowsMap.keys())
+    .filter(function(n){ return !q || n.toLowerCase().indexOf(q)>=0; })
+    .sort(collate);
+
+  if(names.length===0){
+    body.innerHTML='<div class="stack"><p style="color:var(--fg-muted);font-size:13px">No profile here matches <b>'+esc(state.qPermDetail)+'</b>.</p></div>';
+    return;
+  }
+
+  body.innerHTML='<div class="stack">'+
+    '<div class="group" style="box-shadow:var(--shadow-sm)">'+
+      '<div style="overflow-x:auto">'+
+      '<table class="ptable"><thead><tr>'+
+        '<th style="padding-top:12px">Profile</th>'+
+        '<th style="padding-top:12px">Granted in</th>'+
+        '<th style="padding-top:12px;text-align:right">Total permissions</th>'+
+      '</tr></thead><tbody>'+
+      names.map(function(n){
+        var prods=rowsMap.get(n).sort(collate);
+        var st=profileStats(n);
+        return '<tr>'+
+          '<td class="cell-profile"><button class="linkish" data-goto-profile="'+esc(n)+'" title="Open this profile">'+highlight(n,state.qPermDetail.trim())+'</button></td>'+
+          '<td>'+prods.map(function(p){ return '<span class="tag">'+esc(p)+'</span>'; }).join("")+'</td>'+
+          '<td style="text-align:right;font-family:var(--mono);font-size:12px;color:var(--fg-muted);font-variant-numeric:tabular-nums">'+st.permissions+'</td>'+
+        '</tr>';
+      }).join("")+
+      '</tbody></table></div>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ============================================================
+   Chrome
+   ============================================================ */
+function renderChrome(){
+  $("#tc-profiles").textContent=state.profiles.size;
+  $("#tc-permissions").textContent=state.permissions.size;
+
+  var chip=$("#filechip");
+  if(state.fileName){
+    chip.hidden=false;
+    $("#fname").textContent=state.fileName;
+    $("#fstats").textContent="· "+state.rowCount.toLocaleString()+" grants";
+  } else chip.hidden=true;
+
+  var sel=$("#f-product");
+  var current=state.productFilter;
+  sel.innerHTML='<option value="">All products</option>'+
+    state.products.map(function(p){
+      return '<option value="'+esc(p)+'"'+(p===current?" selected":"")+'>'+esc(p)+'</option>';
+    }).join("");
+}
+
+function renderAll(){
+  renderChrome();
+  renderProfileList();
+  renderProfileDetail();
+  renderPermissionList();
+  renderPermissionDetail();
+}
+
+function setTab(tab){
+  state.tab=tab;
+  ["profiles","permissions"].forEach(function(t){
+    var isOn=t===tab;
+    $("#tab-"+t).setAttribute("aria-selected",isOn?"true":"false");
+    var view=$("#view-"+t);
+    view.classList.toggle("is-active",isOn);
+    view.hidden=!isOn;
+  });
+}
+
+/* ============================================================
+   Loading data
+   ============================================================ */
+function showError(msg){
+  var el=$("#err");
+  if(!msg){ el.hidden=true; el.textContent=""; return; }
+  el.hidden=false; el.textContent=msg;
+}
+
+function ingest(text,fileName){
+  var delim=sniffDelimiter(text);
+  var rows=parseCSV(text,delim);
+  if(rows.length===0){ showError("That file looks empty — no rows to read."); return; }
+  if(looksLikeHeader(rows[0])) rows=rows.slice(1);
+  if(rows.length===0){ showError("The file only contains a header row."); return; }
+
+  buildIndex(rows);
+
+  if(state.profiles.size===0){
+    showError("No usable rows found. Expected profile name in column A, product in column B and permissions in column C.");
+    return;
+  }
+  showError("");
+  state.fileName=fileName;
+  state.selProfile=matchingProfiles()[0]||null;
+  state.selPermission=null;
+  state.qProfile=state.qPermission=state.qDetail=state.qPermDetail="";
+  state.productFilter="";
+  $("#s-prof").value=""; $("#s-perm").value="";
+  clearSearchState("#s-prof-wrap",""); clearSearchState("#s-perm-wrap","");
+
+  $("#welcome").hidden=true;
+  renderAll();
+
+  var msg="Loaded "+plural(state.profiles.size,"profile")+", "+
+          plural(state.permissions.size,"permission")+" across "+
+          plural(state.products.length,"product");
+  if(state.skipped) msg+=" — "+plural(state.skipped,"row")+" skipped";
+  toast(msg);
+}
+
+function readFile(file){
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onerror=function(){ showError("Could not read that file. Try opening it again."); };
+  reader.onload=function(){ ingest(String(reader.result),file.name); };
+  reader.readAsText(file);
+}
+
+/* ============================================================
+   Events
+   ============================================================ */
+$("#btn-load").addEventListener("click",function(){ $("#file").click(); });
+$("#btn-load-2").addEventListener("click",function(){ $("#file").click(); });
+$("#file").addEventListener("change",function(e){
+  readFile(e.target.files && e.target.files[0]);
+  e.target.value="";
+});
+
+// drag & drop anywhere
+var dz=$("#dropzone");
+["dragenter","dragover"].forEach(function(ev){
+  window.addEventListener(ev,function(e){ e.preventDefault(); dz.classList.add("is-over"); });
+});
+["dragleave","drop"].forEach(function(ev){
+  window.addEventListener(ev,function(e){ e.preventDefault(); if(ev==="drop"||e.target===document.documentElement) dz.classList.remove("is-over"); });
+});
+window.addEventListener("drop",function(e){
+  var f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f) readFile(f);
+});
+
+// tabs
+document.querySelectorAll(".tab").forEach(function(btn){
+  btn.addEventListener("click",function(){ setTab(btn.dataset.tab); });
+});
+
+// theme toggle
+$("#btn-theme").addEventListener("click",function(){
+  var root=document.documentElement;
+  var explicit=root.getAttribute("data-theme");
+  var dark = explicit ? explicit==="dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  root.setAttribute("data-theme",dark?"light":"dark");
+});
+
+// index searches
+$("#s-prof").addEventListener("input",function(e){
+  state.qProfile=e.target.value;
+  clearSearchState("#s-prof-wrap",state.qProfile);
+  renderProfileList();
+});
+$("#s-perm").addEventListener("input",function(e){
+  state.qPermission=e.target.value;
+  clearSearchState("#s-perm-wrap",state.qPermission);
+  renderPermissionList();
+});
+$("#f-product").addEventListener("change",function(e){
+  state.productFilter=e.target.value;
+  if(state.selPermission && state.productFilter){
+    var holders=state.permissions.get(state.selPermission);
+    if(holders && !holders.has(state.productFilter)) state.selPermission=null;
+  }
+  renderPermissionList();
+  renderPermissionDetail();
+});
+
+// clear buttons (delegated: some live inside re-rendered detail heads)
+document.addEventListener("click",function(e){
+  var clr=e.target.closest("[data-clear]");
+  if(!clr) return;
+  var id=clr.getAttribute("data-clear");
+  var input=document.getElementById(id);
+  if(!input) return;
+  input.value="";
+  input.dispatchEvent(new Event("input",{bubbles:true}));
+  input.focus();
+});
+
+// detail-scoped inputs (delegated because heads are re-rendered)
+document.addEventListener("input",function(e){
+  if(e.target.id==="s-pdet"){
+    state.qDetail=e.target.value;
+    var pos=e.target.selectionStart;
+    renderProfileDetail();
+    var again=document.getElementById("s-pdet");
+    if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
+  }
+  if(e.target.id==="s-qdet"){
+    state.qPermDetail=e.target.value;
+    var pos2=e.target.selectionStart;
+    renderPermissionDetail();
+    var again2=document.getElementById("s-qdet");
+    if(again2){ again2.focus(); try{ again2.setSelectionRange(pos2,pos2); }catch(err){} }
+  }
+});
+
+// list selection + cross-navigation + detail actions
+document.addEventListener("click",function(e){
+  var row=e.target.closest("[data-profile]");
+  if(row){
+    state.selProfile=row.getAttribute("data-profile");
+    state.qDetail="";
+    renderProfileList(); renderProfileDetail();
+    return;
+  }
+  var prow=e.target.closest("[data-permission]");
+  if(prow){
+    state.selPermission=prow.getAttribute("data-permission");
+    state.qPermDetail="";
+    renderPermissionList(); renderPermissionDetail();
+    return;
+  }
+  var toPerm=e.target.closest("[data-goto-perm]");
+  if(toPerm){
+    state.selPermission=toPerm.getAttribute("data-goto-perm");
+    state.qPermDetail="";
+    setTab("permissions");
+    state.qPermission="";
+    $("#s-perm").value="";
+    clearSearchState("#s-perm-wrap","");
+    renderPermissionList(); renderPermissionDetail();
+    scrollSelectedIntoView("#l-perm");
+    return;
+  }
+  var toProf=e.target.closest("[data-goto-profile]");
+  if(toProf){
+    state.selProfile=toProf.getAttribute("data-goto-profile");
+    state.qDetail="";
+    setTab("profiles");
+    state.qProfile="";
+    $("#s-prof").value="";
+    clearSearchState("#s-prof-wrap","");
+    renderProfileList(); renderProfileDetail();
+    scrollSelectedIntoView("#l-prof");
+    return;
+  }
+  var act=e.target.closest("[data-act]");
+  if(act) handleAction(act.getAttribute("data-act"));
+});
+
+function scrollSelectedIntoView(listSel){
+  var el=document.querySelector(listSel+' [aria-selected="true"]');
+  if(el) el.scrollIntoView({block:"nearest"});
+}
+
+function handleAction(act){
+  if(act==="expand"||act==="collapse"){
+    document.querySelectorAll("#d-prof-body .group").forEach(function(d){ d.open = act==="expand"; });
+    return;
+  }
+  if(act==="copy-profile"){
+    var name=state.selProfile;
+    if(!name) return;
+    var byProduct=state.profiles.get(name);
+    var lines=["Profile,Product,Permission"];
+    Array.from(byProduct.keys()).sort(collate).forEach(function(product){
+      Array.from(byProduct.get(product)).sort(collate).forEach(function(perm){
+        lines.push([name,product,perm].map(csvCell).join(","));
+      });
+    });
+    copyText(lines.join("\n"),"Copied "+plural(lines.length-1,"row")+" as CSV");
+    return;
+  }
+  if(act==="copy-permission"){
+    var perm=state.selPermission;
+    if(!perm) return;
+    var holders=state.permissions.get(perm);
+    var out=["Profile,Product,Permission"];
+    Array.from(holders.keys()).sort(collate).forEach(function(product){
+      if(state.productFilter && product!==state.productFilter) return;
+      Array.from(holders.get(product)).sort(collate).forEach(function(profile){
+        out.push([profile,product,perm].map(csvCell).join(","));
+      });
+    });
+    copyText(out.join("\n"),"Copied "+plural(out.length-1,"row")+" as CSV");
+  }
+}
+function csvCell(v){
+  var s=String(v);
+  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+
+// keyboard: "/" focuses the active search, arrows walk the active list
+document.addEventListener("keydown",function(e){
+  var tag=(e.target.tagName||"").toLowerCase();
+  var typing = tag==="input"||tag==="select"||tag==="textarea";
+
+  if(e.key==="/" && !typing){
+    e.preventDefault();
+    var input=document.getElementById(state.tab==="profiles"?"s-prof":"s-perm");
+    if(input){ input.focus(); input.select(); }
+    return;
+  }
+  if(e.key==="Escape" && typing && tag==="input"){
+    e.target.value="";
+    e.target.dispatchEvent(new Event("input",{bubbles:true}));
+    return;
+  }
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+    var listSel = state.tab==="profiles" ? "#l-prof" : "#l-perm";
+    var inIndex = e.target.closest && (e.target.closest(listSel) || e.target.id==="s-prof" || e.target.id==="s-perm");
+    if(!inIndex) return;
+    var rows=Array.prototype.slice.call(document.querySelectorAll(listSel+" .row"));
+    if(rows.length===0) return;
+    e.preventDefault();
+    var idx=rows.findIndex(function(r){ return r.getAttribute("aria-selected")==="true"; });
+    var next = e.key==="ArrowDown" ? Math.min(rows.length-1, idx+1) : Math.max(0, idx<=0?0:idx-1);
+    rows[next].click();
+    rows[next].scrollIntoView({block:"nearest"});
+  }
+});
+
+/* ============================================================
+   Sample data
+   ============================================================ */
+var SAMPLE = [
+  "Profile name,Product,Permissions",
+  "System Administrator,CRM,Manage Users",
+  "System Administrator,CRM,View All Data",
+  "System Administrator,CRM,Modify All Data",
+  "System Administrator,CRM,Delete Accounts",
+  "System Administrator,Billing,Manage Subscriptions",
+  "System Administrator,Billing,Issue Refunds",
+  "System Administrator,Billing,Export Invoices",
+  "System Administrator,Analytics,Manage Dashboards",
+  "System Administrator,Analytics,View All Reports",
+  "System Administrator,Support Desk,Manage Queues;Impersonate Agent",
+  "Sales Manager,CRM,View All Data",
+  "Sales Manager,CRM,Edit Opportunities",
+  "Sales Manager,CRM,Create Accounts",
+  "Sales Manager,CRM,Transfer Ownership",
+  "Sales Manager,Analytics,View All Reports",
+  "Sales Manager,Analytics,Create Dashboards",
+  "Sales Manager,Billing,View Invoices",
+  "Sales Representative,CRM,Read Accounts",
+  "Sales Representative,CRM,Edit Opportunities",
+  "Sales Representative,CRM,Create Contacts",
+  "Sales Representative,Analytics,View Own Reports",
+  "Support Agent,Support Desk,Read Tickets",
+  "Support Agent,Support Desk,Edit Tickets",
+  "Support Agent,Support Desk,Merge Tickets",
+  "Support Agent,CRM,Read Accounts",
+  "Support Agent,CRM,Read Contacts",
+  "Support Lead,Support Desk,Read Tickets;Edit Tickets;Delete Tickets",
+  "Support Lead,Support Desk,Manage Queues",
+  "Support Lead,Support Desk,View All Tickets",
+  "Support Lead,CRM,Read Accounts",
+  "Support Lead,Analytics,View All Reports",
+  "Finance Analyst,Billing,View Invoices",
+  "Finance Analyst,Billing,Export Invoices",
+  "Finance Analyst,Billing,Issue Refunds",
+  "Finance Analyst,Analytics,View All Reports",
+  "Finance Analyst,Analytics,Export Reports",
+  "Finance Controller,Billing,Manage Subscriptions",
+  "Finance Controller,Billing,Issue Refunds",
+  "Finance Controller,Billing,Approve Credit Notes",
+  "Finance Controller,Billing,Export Invoices",
+  "Finance Controller,Analytics,View All Reports",
+  "Marketing Manager,Marketing Cloud,Manage Campaigns",
+  "Marketing Manager,Marketing Cloud,Send Broadcasts",
+  "Marketing Manager,Marketing Cloud,Edit Templates",
+  "Marketing Manager,CRM,Read Contacts",
+  "Marketing Manager,CRM,Import Leads",
+  "Marketing Manager,Analytics,View All Reports",
+  "Marketing Specialist,Marketing Cloud,Edit Templates",
+  "Marketing Specialist,Marketing Cloud,Create Campaigns",
+  "Marketing Specialist,CRM,Read Contacts",
+  "Read Only,CRM,Read Accounts",
+  "Read Only,CRM,Read Contacts",
+  "Read Only,Billing,View Invoices",
+  "Read Only,Analytics,View Own Reports",
+  "Integration User,CRM,Read Accounts",
+  "Integration User,CRM,Create Contacts",
+  "Integration User,CRM,Modify All Data",
+  "Integration User,Billing,Export Invoices",
+  "Integration User,Support Desk,Read Tickets",
+  "Data Steward,CRM,Modify All Data",
+  "Data Steward,CRM,Delete Accounts",
+  "Data Steward,CRM,Import Leads",
+  "Data Steward,Analytics,Manage Dashboards",
+  "Data Steward,Support Desk,Delete Tickets"
+].join("\n");
+
+$("#btn-sample").addEventListener("click",function(){ ingest(SAMPLE,"sample-permissions.csv"); });
+
+renderAll();
+})();
+</script>
+</body>
+</html>
